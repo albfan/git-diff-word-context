@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+
+ESCAPE=$'\e'
+START_DIFF="$ESCAPE\\[3[12]m"
+END_DIFF="$ESCAPE\\[m"
+NOESCAPE="[^$ESCAPE]"
+
+CONTEXT="20"
+STDIN=false
+ARGS=()
+while [ "${1::1}" = "-" ]; do
+    case "$1" in
+        "-U"|"--unified")
+            CONTEXT="$2"
+            shift
+            ;;
+        "-U"*)
+            CONTEXT="${1#-U}"
+            ;;
+        "--unified="*)
+            CONTEXT="${1#--unified=}"
+            ;;
+        "--stdin")
+            STDIN=true
+            ;;
+        "--")
+            break
+            ;;
+        *)
+            ARGS+=("$1")
+            ;;
+    esac
+    shift
+done
+
+set -o pipefail
+
+ok() {
+    "$@"
+    true
+}
+
+if $STDIN; then
+    cat
+else
+    git diff --color-words='[^\n]' "${ARGS[@]}" "$@" 
+fi |
+ok grep -oP "$NOESCAPE{0,$CONTEXT}(($START_DIFF[^$ESCAPE]+$END_DIFF)+$NOESCAPE{0,$CONTEXT})+"
