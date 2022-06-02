@@ -43,6 +43,6 @@ ok() {
 if $STDIN; then
     cat
 else
-    git diff --color-words='[^\n]' "${ARGS[@]}" "$@" 
+    git diff --color-words='[^\n]' --word-diff=plain --word-diff-regex="[^][:space:].,;(){}\"']+" "${ARGS[@]}" "$@"
 fi |
 ok grep -oP "$NOESCAPE{0,$CONTEXT}(($START_DIFF[^$ESCAPE]+$END_DIFF)+$NOESCAPE{0,$CONTEXT})+"
